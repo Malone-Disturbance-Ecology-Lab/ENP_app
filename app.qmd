@@ -1,0 +1,176 @@
+---
+title: "Everglades National Park Fires"
+format: 
+  dashboard:
+    theme: 
+       - journal
+---
+```{r}
+#| context: setup1
+# Load packages
+librarian::shelf(dplyr, leaflet,
+                 terra, raster, leafem,
+                 htmltools, ggplot2,
+                 zoo, readr, plotly,
+                 quiet = T)
+
+# Read in rasters
+total_fires <- terra::rast("EVER_BICY_1978_2023_total_fires_trimmed.tif") 
+time_since <- terra::rast("EVER_BICY_1978_2023_time_since_trimmed.tif") 
+
+```
+
+# About
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+
+# Map 
+
+```{r}
+# Set the color palettes of the raster layers
+pal1 <- leaflet::colorNumeric(
+  palette = "magma",
+  domain = terra::values(total_fires),
+  na.color = "transparent",
+  reverse = T
+)
+
+pal2 <- leaflet::colorNumeric(
+  palette = "viridis",
+  domain = terra::values(time_since),
+  na.color = "transparent"
+)
+
+```
+
+```{r}
+leaflet() %>%
+  # Add Leaflet-provided gray background map
+  leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
+  # Add Leaflet-provided terrain map
+  leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
+  # Add raster layer plot
+  leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1) %>%
+  # Add legend for raster layer
+  leaflet::addLegend(
+    group = "Total Fires",
+    data = total_fires,
+    pal = pal1,
+    values = terra::values(total_fires),
+    position = "bottomleft",
+    title = "Total Fires"
+  ) %>%
+  # Add a second layer
+  leaflet::addRasterImage(group = "Years Since Last Fire", time_since, colors = pal2) %>%
+  # Add another legend for the second layer
+  leaflet::addLegend(
+    group = "Years Since Last Fire",
+    data = time_since,
+    pal = pal2,
+    values = terra::values(time_since),
+    position = "bottomleft",
+    title = "Years Since Last Fire"
+  ) %>%
+  # Add lat/lon coordinate indicator
+  leafem::addMouseCoordinates() %>%
+  # Add mouseover popup that shows the value of the raster layers
+  leafem::addImageQuery(
+    x = raster::raster(total_fires),
+    group = "Total Fires",
+    position = "bottomright"
+  ) %>%
+  leafem::addImageQuery(
+    x = raster::raster(time_since),
+    group = "Years Since Last Fire",
+    position = "bottomright"
+  ) %>%
+  # Set the layer control
+  leaflet::addLayersControl(
+    baseGroups = c("Gray background", "Imagery"),
+    overlayGroups = c("Total Fires", "Years Since Last Fire"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  # Hide these groups by default
+  hideGroup(c("Years Since Last Fire"))
+
+
+```
+
+# Area Burned
+
+## Row
+
+```{r}
+#| context: setup2
+summary_calculations <- read_csv("summary_calculations.csv") %>%
+  mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
+```
+
+```{r}
+#| title: "Total Area Burned (m^2) - text formatted"
+p <- ggplot(summary_calculations) +
+  geom_col(aes(
+              x = Year,
+              y = total_area_burned,
+              text = paste("Area burned:", scales::comma(total_area_burned), "m^2"))) +
+  geom_line(aes(x = Year,
+                y = roll_mean, 
+                group = 1,
+                text = paste("Rolling mean:", scales::comma(roll_mean))),
+            color = "red") +
+  theme_bw() +
+  labs(y = "Total area burned (m^2)") 
+
+p %>% plotly::ggplotly(tooltip = c("x", "text"))
+```
+
+## Row
+
+```{r}
+#| title: "Wildfire Area Burned (m^2)"
+plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = total_WF_burned)) +
+                   geom_col() + theme_bw() +
+                   labs(y = "Wildfire area burned (m^2)") +
+                   geom_line(aes(y = rollmean(
+                     total_WF_burned, 10, na.pad = TRUE),
+                     color = "red"))
+                 )
+```
+
+```{r}
+#| title: "Prescribed Area Burned (m^2)"
+plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = total_RX_burned)) +
+                   geom_col() + theme_bw() +
+                   labs(y = "Prescribed area burned (m^2)") +
+                   geom_line(aes(y = rollmean(
+                     total_RX_burned, 10, na.pad = TRUE),
+                     color = "red"))
+                 )
+```
+
+# Mean Stats 
+
+## Row
+
+```{r}
+#| title: "Mean Fire Size (m^2)"
+plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = mean_fire_size)) +
+                   geom_col() + theme_bw() +
+                   labs(y = "Mean fire size (m^2)") +
+                   geom_line(aes(y = rollmean(
+                     mean_fire_size, 10, na.pad = TRUE),
+                     color = "orange"))
+                 )
+```
+
+```{r}
+#| title: "Mean Fire Area/Perimeter (m)"
+plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = mean_area_over_perim)) +
+                   geom_col() + theme_bw() +
+                   labs(y = "Mean fire area/perimeter (m)") +
+                   geom_line(aes(y = rollmean(
+                     mean_area_over_perim, 10, na.pad = TRUE),
+                     color = "orange"))
+                 )
+```

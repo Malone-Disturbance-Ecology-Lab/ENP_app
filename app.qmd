@@ -15,8 +15,8 @@ librarian::shelf(dplyr, leaflet,
                  quiet = T)
 
 # Read in rasters
-total_fires <- terra::rast("EVER_BICY_1978_2023_total_fires_trimmed.tif") 
-time_since <- terra::rast("EVER_BICY_1978_2023_time_since_trimmed.tif") 
+total_fires <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
+time_since <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
 
 ```
 
@@ -103,7 +103,7 @@ leaflet() %>%
 
 ```{r}
 #| context: setup2
-summary_calculations <- read_csv("summary_calculations.csv") %>%
+summary_calculations <- read_csv(file.path("data","summary_calculations.csv")) %>%
   mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
 ```
 

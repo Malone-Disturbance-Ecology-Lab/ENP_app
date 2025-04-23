@@ -15,8 +15,15 @@ librarian::shelf(dplyr, leaflet,
                  quiet = T)
 
 # Read in rasters
-total_fires <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
-time_since <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
+total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
+time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
+
+test <- terra::vect("EVG.L2_sim.shp")
+```
+
+```{r}
+total_fires <- total_fires <- terra::spatSample(total_fires_orig, 2000000, method="regular", as.raster=TRUE)
+time_since <- time_since <- terra::spatSample(time_since_orig, 2000000, method="regular", as.raster=TRUE)
 
 ```
 
@@ -42,6 +49,9 @@ pal2 <- leaflet::colorNumeric(
   na.color = "transparent"
 )
 
+pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF", "#FFBE7DFF", "#59A14FFF", "#8CD17DFF", "#B6992DFF", "#F1CE63FF","#499894FF"),
+                   domain = test$L2_new)
+
 ```
 
 ```{r}
@@ -50,6 +60,9 @@ leaflet() %>%
   leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
   # Add Leaflet-provided terrain map
   leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
+    leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
+  leaflet::addPolygons(group = "testing", data = test, color = ~pal3(L2_new), weight= 0.2,
+              fillColor = ~pal3(L2_new), fillOpacity = .7) %>%
   # Add raster layer plot
   leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1) %>%
   # Add legend for raster layer
@@ -88,11 +101,11 @@ leaflet() %>%
   # Set the layer control
   leaflet::addLayersControl(
     baseGroups = c("Gray background", "Imagery"),
-    overlayGroups = c("Total Fires", "Years Since Last Fire"),
+    overlayGroups = c("Total Fires", "Years Since Last Fire", "testing"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   # Hide these groups by default
-  hideGroup(c("Years Since Last Fire"))
+  hideGroup(c("Years Since Last Fire", "testing"))
 
 
 ```

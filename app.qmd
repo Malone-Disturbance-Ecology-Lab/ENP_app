@@ -26,6 +26,8 @@ time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_
   terra::project("epsg:4326")
 
 # Read in vegetation shapefile
+veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp")) %>%
+  terra::project("epsg:4326")
 veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>%
   terra::project("epsg:4326")
 ```

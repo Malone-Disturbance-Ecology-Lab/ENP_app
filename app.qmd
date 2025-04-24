@@ -4,10 +4,14 @@ format:
   dashboard:
     theme: 
        - journal
+    nav-buttons: [github]
+    github: https://github.com/Malone-Disturbance-Ecology-Lab/ENP_app
+server: shiny
 ---
 ```{r}
 #| context: setup1
 # Load packages
+library(shiny)
 library(dplyr)
 library(leaflet)
 library(terra)
@@ -20,22 +24,18 @@ library(readr)
 library(plotly)
 
 # Read in rasters
-total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) %>%
-  terra::project("epsg:4326")
-time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) %>%
-  terra::project("epsg:4326")
+total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
+time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
 
 # Read in vegetation shapefile
-veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp")) %>%
-  terra::project("epsg:4326")
+veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
 ```
 
 ```{r}
 # Create/read in simplified versions of the data (due to large size)
-total_fires <- total_fires <- terra::spatSample(total_fires_orig, 2000000, method="regular", as.raster=TRUE)
-time_since <- time_since <- terra::spatSample(time_since_orig, 2000000, method="regular", as.raster=TRUE)
-veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>%
-  terra::project("epsg:4326")
+total_fires <- terra::spatSample(total_fires_orig, 2000000, method = "regular", as.raster = TRUE)
+time_since <- terra::spatSample(time_since_orig, 2000000, method = "regular", as.raster = TRUE)
+veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) 
 ```
 
 # About
@@ -44,6 +44,19 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 
 # Map 
+
+## {.sidebar}
+Current map coordinates:
+
+```{r}
+# Show current map coordinates
+textOutput("current_coords_w")
+textOutput("current_coords_e")
+textOutput("current_coords_s")
+textOutput("current_coords_n")
+```
+
+## Row 
 
 ```{r}
 # Set the color palettes of the raster layers
@@ -60,7 +73,9 @@ pal2 <- leaflet::colorNumeric(
   na.color = "transparent"
 )
 
-pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF", "#FFBE7DFF", "#59A14FFF", "#8CD17DFF", "#B6992DFF", "#F1CE63FF","#499894FF"),
+pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF", 
+                                "#FFBE7DFF", "#59A14FFF", "#8CD17DFF", 
+                                "#B6992DFF", "#F1CE63FF","#499894FF"),
                    domain = veg$L2_new)
 
 ```
@@ -71,9 +86,19 @@ leaflet() %>%
   leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
   # Add Leaflet-provided terrain map
   leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
-    leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
+  # Add vegetation layer
   leaflet::addPolygons(group = "Ecosystem", data = veg, color = ~pal3(L2_new), weight= 0.2,
-              fillColor = ~pal3(L2_new), fillOpacity = .7) %>%
+                fillColor = ~pal3(L2_new), fillOpacity = .7,
+                label = ~htmlEscape(paste("Ecosystem:", L2_new))) %>%
+  # Add legend for vegetation layer
+  leaflet::addLegend(
+    group = "Ecosystem",
+    data = veg,
+    pal = pal3,
+    values = veg$L2_new,
+    position = "bottomleft",
+    title = "Ecosystem"
+  ) %>%
   # Add raster layer plot
   leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1) %>%
   # Add legend for raster layer
@@ -119,6 +144,25 @@ leaflet() %>%
   hideGroup(c("Years Since Last Fire", "Ecosystem"))
 
 
+```
+```{r}
+#| context: server
+# Output the current coordinates on the map
+output$current_coords_w <- renderText({
+  paste0(input$map_bounds$west, "° W")
+})
+
+output$current_coords_e <- renderText({
+  paste0(input$map_bounds$east, "° E")
+})
+
+output$current_coords_s <- renderText({
+  paste0(input$map_bounds$south, "° S")
+})
+
+output$current_coords_n <- renderText({
+  paste0(input$map_bounds$north, "° N")
+})
 ```
 
 # Area Burned

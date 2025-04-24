@@ -8,17 +8,23 @@ format:
 ```{r}
 #| context: setup1
 # Load packages
-librarian::shelf(dplyr, leaflet,
-                 terra, raster, leafem,
-                 htmltools, ggplot2,
-                 zoo, readr, plotly,
-                 quiet = T)
+library(dplyr)
+library(leaflet)
+library(terra)
+library(raster)
+library(leafem)
+library(htmltools)
+library(ggplot2)
+library(zoo)
+library(readr)
+library(plotly)
 
 # Read in rasters
 total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
 time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
 
-test <- terra::vect("EVG.L2_sim.shp")
+test <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>%
+  terra::project("epsg:4326")
 ```
 
 ```{r}

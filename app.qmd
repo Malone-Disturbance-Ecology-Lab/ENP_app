@@ -9,7 +9,7 @@ format:
 server: shiny
 ---
 ```{r}
-#| context: setup1
+#| context: setup
 # Load packages
 library(shiny)
 library(dplyr)
@@ -29,14 +29,17 @@ time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_
 
 # Read in vegetation shapefile
 veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
-```
 
-```{r}
 # Create/read in simplified versions of the data (due to large size)
 total_fires <- terra::spatSample(total_fires_orig, 2000000, method = "regular", as.raster = TRUE)
 time_since <- terra::spatSample(time_since_orig, 2000000, method = "regular", as.raster = TRUE)
-veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) 
+veg <- terra::vect(file.path("data", "EVG.L2_sim.shp"))
+
+# Read in summary calculations
+summary_calculations <- read_csv(file.path("summary_calculations.csv")) %>%
+  mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
 ```
+
 
 # About
 
@@ -57,8 +60,13 @@ textOutput("current_coords_n")
 ```
 
 ## Row 
+```{r}
+# Our Leaflet map will show up in the "Map" tab
+leafletOutput(outputId = "map")
+```
 
 ```{r}
+#| context: server
 # Set the color palettes of the raster layers
 pal1 <- leaflet::colorNumeric(
   palette = "magma",
@@ -73,15 +81,14 @@ pal2 <- leaflet::colorNumeric(
   na.color = "transparent"
 )
 
-pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF", 
-                                "#FFBE7DFF", "#59A14FFF", "#8CD17DFF", 
+pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF",
+                                "#FFBE7DFF", "#59A14FFF", "#8CD17DFF",
                                 "#B6992DFF", "#F1CE63FF","#499894FF"),
                    domain = veg$L2_new)
 
-```
-
-```{r}
-leaflet() %>%
+# Render the foundational Leaflet map
+output$map <- leaflet::renderLeaflet({
+  leaflet() %>%
   # Add Leaflet-provided gray background map
   leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
   # Add Leaflet-provided terrain map
@@ -142,11 +149,8 @@ leaflet() %>%
   ) %>%
   # Hide these groups by default
   hideGroup(c("Years Since Last Fire", "Ecosystem"))
-
-
-```
-```{r}
-#| context: server
+})
+ 
 # Output the current coordinates on the map
 output$current_coords_w <- renderText({
   paste0(input$map_bounds$west, "° W")
@@ -170,14 +174,8 @@ output$current_coords_n <- renderText({
 ## Row
 
 ```{r}
-#| context: setup2
-summary_calculations <- read_csv(file.path("data","summary_calculations.csv")) %>%
-  mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
-```
-
-```{r}
 #| title: "Total Area Burned (m^2) - text formatted"
-p <- ggplot(summary_calculations) +
+p <- ggplot2::ggplot(summary_calculations) +
   geom_col(aes(
               x = Year,
               y = total_area_burned,

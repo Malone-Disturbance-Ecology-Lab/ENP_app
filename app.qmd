@@ -20,10 +20,13 @@ library(readr)
 library(plotly)
 
 # Read in rasters
-total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
-time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
+total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) %>%
+  terra::project("epsg:4326")
+time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) %>%
+  terra::project("epsg:4326")
 
-test <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>%
+# Read in vegetation shapefile
+veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>%
   terra::project("epsg:4326")
 ```
 
@@ -56,7 +59,7 @@ pal2 <- leaflet::colorNumeric(
 )
 
 pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF", "#FFBE7DFF", "#59A14FFF", "#8CD17DFF", "#B6992DFF", "#F1CE63FF","#499894FF"),
-                   domain = test$L2_new)
+                   domain = veg$L2_new)
 
 ```
 
@@ -67,7 +70,7 @@ leaflet() %>%
   # Add Leaflet-provided terrain map
   leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
     leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
-  leaflet::addPolygons(group = "testing", data = test, color = ~pal3(L2_new), weight= 0.2,
+  leaflet::addPolygons(group = "Ecosystem", data = veg, color = ~pal3(L2_new), weight= 0.2,
               fillColor = ~pal3(L2_new), fillOpacity = .7) %>%
   # Add raster layer plot
   leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1) %>%
@@ -107,11 +110,11 @@ leaflet() %>%
   # Set the layer control
   leaflet::addLayersControl(
     baseGroups = c("Gray background", "Imagery"),
-    overlayGroups = c("Total Fires", "Years Since Last Fire", "testing"),
+    overlayGroups = c("Total Fires", "Years Since Last Fire", "Ecosystem"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%
   # Hide these groups by default
-  hideGroup(c("Years Since Last Fire", "testing"))
+  hideGroup(c("Years Since Last Fire", "Ecosystem"))
 
 
 ```

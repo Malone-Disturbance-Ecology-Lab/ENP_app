@@ -27,6 +27,12 @@ library(plotly)
 total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
 time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
 
+# Reproject rasters (for later)
+total_fires_orig_4326 <- total_fires_orig %>%
+  terra::project("epsg:4326")
+time_since_orig_4326 <- time_since_orig %>%
+  terra::project("epsg:4326")
+
 # Read in vegetation shapefile
 veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
 
@@ -36,7 +42,7 @@ time_since <- terra::spatSample(time_since_orig, 2000000, method = "regular", as
 veg <- terra::vect(file.path("data", "EVG.L2_sim.shp"))
 
 # Read in summary calculations
-summary_calculations <- read_csv(file.path("summary_calculations.csv")) %>%
+summary_calculations <- read_csv(file.path("data", "summary_calculations.csv")) %>%
   mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
 ```
 
@@ -67,7 +73,7 @@ leafletOutput(outputId = "map")
 
 ```{r}
 #| context: server
-# Set the color palettes of the raster layers
+# Set the color palettes of the raster layers and shapefile
 pal1 <- leaflet::colorNumeric(
   palette = "magma",
   domain = terra::values(total_fires),
@@ -167,6 +173,114 @@ output$current_coords_s <- renderText({
 output$current_coords_n <- renderText({
   paste0(input$map_bounds$north, "° N")
 })
+```
+
+# Data
+
+## {.sidebar}
+
+Get summary stats over a spatial area (please be patient): 
+
+```{r}
+# Input: Specify the coordinates for the spatial area you want
+numericInput(inputId = "west_coord", label = "Degrees West", terra::ext(veg_orig)[1])
+
+numericInput(inputId = "east_coord", label = "Degrees East", terra::ext(veg_orig)[2])
+
+numericInput(inputId = "south_coord", label = "Degrees South", terra::ext(veg_orig)[3])
+
+numericInput(inputId = "north_coord", label = "Degrees North", terra::ext(veg_orig)[4])
+```
+
+Download a csv file of the current summary dataframe:
+
+```{r}
+# Download button to download a csv of the summary dataframe
+downloadButton(outputId = "dl", label = "Data Download")
+```
+
+## Row 
+```{r}
+# Our summary table will show up in the "Data" tab
+tableOutput(outputId = "values")
+```
+
+```{r}
+#| context: server
+# Create a SpatVector with our selected bounds
+polygon_shape <- reactive({
+  e <- terra::ext(input$west_coord,
+                  input$east_coord,
+                  input$south_coord,
+                  input$north_coord)
+  p <- terra::as.polygons(e, crs = "epsg:4326")
+  return(p)
+})
+
+# Find where the two SpatVectors intersect
+veg_aoi_vector <- reactive({
+  overlap_vector <- terra::intersect(veg_orig, polygon_shape())
+  return(overlap_vector)
+  })
+
+# Calculate the area of each geometry (ecosystem)
+veg_aoi_stats <- reactive({
+  area <- terra::expanse(veg_aoi_vector())
+  return(area)
+  })
+
+# Calculate the mean number of fires for the specified spatial area
+mean_total_fires <- reactive({
+  mean_values1 <- terra::extract(total_fires_orig_4326,
+                              veg_aoi_vector(),
+                              mean,
+                              na.rm = TRUE,
+                              ID = FALSE) %>%
+  dplyr::rename(Mean_num_fires = sum)
+  return(mean_values1)
+  })
+
+# Calculate the mean number of years since the last fire for the specified spatial area
+mean_time_since <- reactive({
+  mean_values2 <- terra::extract(time_since_orig_4326,
+                              veg_aoi_vector(),
+                              mean,
+                              na.rm = TRUE,
+                              ID = FALSE) %>%
+  dplyr::rename(Mean_years_since = max)
+  return(mean_values2)
+  })
+
+# Assemble the dataframe
+table_summary <- reactive({
+  data.frame(
+    Ecosystem = veg_aoi_vector()$L2_new,
+    Area = veg_aoi_stats(),
+    Mean_num_fires = mean_total_fires(),
+    Mean_years_since = mean_time_since(),
+    West = input$west_coord,
+    East = input$east_coord,
+    South = input$south_coord,
+    North = input$north_coord
+  )
+})
+
+# Show the values in an HTML table
+output$values <- renderTable({
+  table_summary()
+})
+
+output$dl <- downloadHandler(
+  # Create the output file name
+  filename = function() {
+    paste0(Sys.Date(), "_custom_summary.csv")
+  },
+  
+  content = function(file) {
+    # Tell the download button to export the summary dataframe as a csv
+    write.csv(table_summary(), file, row.names = FALSE)
+  }
+)
 ```
 
 # Area Burned

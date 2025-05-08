@@ -265,7 +265,7 @@ mean_time_since <- reactive({
 table_summary <- reactive({
   data.frame(
     Ecosystem = veg_aoi_vector()$L2_new,
-    Area = veg_aoi_stats(),
+    Area_m2 = veg_aoi_stats(),
     Mean_num_fires = mean_total_fires(),
     Mean_years_since = mean_time_since(),
     West = input$west_coord,

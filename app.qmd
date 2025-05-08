@@ -23,22 +23,16 @@ library(zoo)
 library(readr)
 library(plotly)
 
-# Read in rasters
-total_fires_orig <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trimmed.tif")) 
-time_since_orig <- terra::rast(file.path("data","EVER_BICY_1978_2023_time_since_trimmed.tif")) 
+# Read in reprojected rasters (for later)
+total_fires_trim_4326 <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trim_4326.tif")) 
+time_since_trim_4326 <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim_4326.tif")) 
 
-# Reproject rasters (for later)
-total_fires_orig_4326 <- total_fires_orig %>%
-  terra::project("epsg:4326")
-time_since_orig_4326 <- time_since_orig %>%
-  terra::project("epsg:4326")
+# Read in simplified versions of the rasters (due to large size)
+total_fires <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trim_simp.tif")) 
+time_since <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim_simp.tif"))
 
-# Read in vegetation shapefile
+# Read in vegetation shapefile and its simplified version
 veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
-
-# Create/read in simplified versions of the data (due to large size)
-total_fires <- terra::spatSample(total_fires_orig, 2000000, method = "regular", as.raster = TRUE)
-time_since <- terra::spatSample(time_since_orig, 2000000, method = "regular", as.raster = TRUE)
 veg <- terra::vect(file.path("data", "EVG.L2_sim.shp"))
 
 # Read in summary calculations
@@ -241,7 +235,7 @@ veg_aoi_stats <- reactive({
 
 # Calculate the mean number of fires for the specified spatial area
 mean_total_fires <- reactive({
-  mean_values1 <- terra::extract(total_fires_orig_4326,
+  mean_values1 <- terra::extract(total_fires_trim_4326,
                               veg_aoi_vector(),
                               mean,
                               na.rm = TRUE,
@@ -252,7 +246,7 @@ mean_total_fires <- reactive({
 
 # Calculate the mean number of years since the last fire for the specified spatial area
 mean_time_since <- reactive({
-  mean_values2 <- terra::extract(time_since_orig_4326,
+  mean_values2 <- terra::extract(time_since_trim_4326,
                               veg_aoi_vector(),
                               mean,
                               na.rm = TRUE,

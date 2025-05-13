@@ -36,8 +36,14 @@ veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
 veg <- terra::vect(file.path("data", "EVG.L2_sim.shp"))
 
 # Read in summary calculations
-summary_calculations <- read_csv(file.path("data", "summary_calculations.csv")) %>%
-  mutate(roll_mean = zoo::rollmean(total_area_burned, 10, na.pad = TRUE))
+summary_calculations <- read_csv(file.path("data", "summary_calculations.csv"))
+
+summary_calculations.ma <- summary_calculations %>% 
+  dplyr::mutate(ma.total_area_burned = zoo::rollmean(total_area_burned, 5, fill = NA),
+                ma.total_WF_burned = zoo::rollmean(total_WF_burned, 5, fill = NA),
+                ma.total_RX_burned = zoo::rollmean(total_RX_burned, 5, fill = NA),
+                ma.mean_fire_size = zoo::rollmean(mean_fire_size, 5, fill = NA),
+                ma.mean_area_over_perim = zoo::rollmean(mean_area_over_perim, 5, fill = NA)) 
 ```
 
 
@@ -292,45 +298,66 @@ output$dl <- downloadHandler(
 ## Row
 
 ```{r}
-#| title: "Total Area Burned (m^2) - text formatted"
-p <- ggplot2::ggplot(summary_calculations) +
+#| title: "Total Area Burned"
+p.total.area <- ggplot(summary_calculations.ma) + 
   geom_col(aes(
-              x = Year,
-              y = total_area_burned,
-              text = paste("Area burned:", scales::comma(total_area_burned), "m^2"))) +
-  geom_line(aes(x = Year,
-                y = roll_mean, 
-                group = 1,
-                text = paste("Rolling mean:", scales::comma(roll_mean))),
-            color = "red") +
-  theme_bw() +
-  labs(y = "Total area burned (m^2)") 
+    x = Year, 
+    y = total_area_burned/1000000, 
+    text = paste("Area burned:", scales::comma(total_area_burned/1000000), "km<sup>2</sup>"))) + 
+  geom_line(aes(
+    x = Year, 
+    y = ma.total_area_burned/1000000, 
+    group = 1, 
+    text = paste("Rolling mean:", scales::comma(ma.total_area_burned/1000000), "km<sup>2</sup>")), 
+    col = "goldenrod",
+    linewidth = 1) +
+  theme_bw() + 
+  ylab('Total Area Burned (km<sup>2</sup>)') + xlab('')
 
-p %>% plotly::ggplotly(tooltip = c("x", "text"))
+p.total.area %>% plotly::ggplotly(tooltip = c("x", "text"))
 ```
 
 ## Row
 
 ```{r}
-#| title: "Wildfire Area Burned (m^2)"
-plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = total_WF_burned)) +
-                   geom_col() + theme_bw() +
-                   labs(y = "Wildfire area burned (m^2)") +
-                   geom_line(aes(y = rollmean(
-                     total_WF_burned, 10, na.pad = TRUE),
-                     color = "red"))
-                 )
+#| title: "Wildfire Area Burned"
+p.total.area.WF <- ggplot(summary_calculations.ma) + 
+  geom_col(aes(
+    x = Year, 
+    y = total_WF_burned/1000000,
+    text = paste("Area burned:", scales::comma(total_WF_burned/1000000), "km<sup>2</sup>"))) + 
+  geom_line(aes(
+    x = Year, 
+    y = ma.total_WF_burned/1000000,
+    group = 1, 
+    text = paste("Rolling mean:", scales::comma(ma.total_WF_burned/1000000), "km<sup>2</sup>")), 
+    col = "goldenrod", 
+    linewidth = 1) + 
+  theme_bw() + 
+  ylab('Wildfire Area Burned (km<sup>2</sup>)') + xlab('')
+
+p.total.area.WF %>% plotly::ggplotly(tooltip = c("x", "text"))
 ```
 
 ```{r}
-#| title: "Prescribed Area Burned (m^2)"
-plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = total_RX_burned)) +
-                   geom_col() + theme_bw() +
-                   labs(y = "Prescribed area burned (m^2)") +
-                   geom_line(aes(y = rollmean(
-                     total_RX_burned, 10, na.pad = TRUE),
-                     color = "red"))
-                 )
+#| title: "Prescribed Area Burned"
+p.total.area.RX <- ggplot(summary_calculations.ma) + 
+  geom_col(aes(
+    x = Year, 
+    y = total_RX_burned/1000000,
+    text = paste("Area burned:", scales::comma(total_RX_burned/1000000), "km<sup>2</sup>"))) + 
+  geom_line(aes(
+    x = Year, 
+    y = ma.total_RX_burned/1000000,
+    group = 1, 
+    text = paste("Rolling mean:", scales::comma(ma.total_RX_burned/1000000), "km<sup>2</sup>")), 
+    col = "goldenrod", 
+    linewidth = 1) + 
+  theme_bw() + 
+  ylab('Prescribed Area Burned (km<sup>2</sup>)') + xlab('')
+
+p.total.area.RX %>% plotly::ggplotly(tooltip = c("x", "text"))
+
 ```
 
 # Mean Stats 
@@ -338,23 +365,41 @@ plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = total_RX_burned)
 ## Row
 
 ```{r}
-#| title: "Mean Fire Size (m^2)"
-plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = mean_fire_size)) +
-                   geom_col() + theme_bw() +
-                   labs(y = "Mean fire size (m^2)") +
-                   geom_line(aes(y = rollmean(
-                     mean_fire_size, 10, na.pad = TRUE),
-                     color = "orange"))
-                 )
+#| title: "Mean Fire Size"
+p.mean_fire_size <- ggplot(summary_calculations.ma) + 
+  geom_col(aes(
+    x = Year, 
+    y = mean_fire_size/1000000,
+    text = paste("Fire size:", scales::comma(mean_fire_size/1000000), "km<sup>2</sup>"))) + 
+  geom_line(aes(
+    x = Year, 
+    y = ma.mean_fire_size/1000000,
+    group = 1, 
+    text = paste("Rolling mean:", scales::comma(ma.mean_fire_size/1000000), "km<sup>2</sup>")), 
+    col = "goldenrod", 
+    linewidth = 1) + 
+  theme_bw() + 
+  ylab('Mean Fire Size (km<sup>2</sup>)') + xlab('')
+
+p.mean_fire_size %>% plotly::ggplotly(tooltip = c("x", "text"))
 ```
 
 ```{r}
-#| title: "Mean Fire Area/Perimeter (m)"
-plotly::ggplotly(ggplot(summary_calculations, aes(x = Year, y = mean_area_over_perim)) +
-                   geom_col() + theme_bw() +
-                   labs(y = "Mean fire area/perimeter (m)") +
-                   geom_line(aes(y = rollmean(
-                     mean_area_over_perim, 10, na.pad = TRUE),
-                     color = "orange"))
-                 )
+#| title: "Mean Fire Area/Perimeter"
+p.mean_area_over_perim <- ggplot(summary_calculations.ma) + 
+  geom_col(aes(
+    x = Year, 
+    y = mean_area_over_perim,
+    text = paste("Fire area/perimeter:", scales::comma(mean_area_over_perim)))) + 
+  geom_line(aes(
+    x = Year, 
+    y = ma.mean_area_over_perim,
+    group = 1, 
+    text = paste("Rolling mean:", scales::comma(ma.mean_area_over_perim))), 
+    col = "goldenrod", 
+    linewidth = 1) + 
+  theme_bw() + 
+  ylab('Mean Fire Area/Perimeter') + xlab('')
+
+p.mean_area_over_perim %>% plotly::ggplotly(tooltip = c("x", "text"))
 ```

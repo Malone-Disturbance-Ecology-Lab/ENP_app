@@ -74,7 +74,7 @@ sf::st_write(EVG.L2_4326, "EVG.L2_4326.shp")
 
 # Simplify the shapes to reduce size
 EVG.L2_sim <- EVG.L2_4326 %>%
-  rmapshaper::ms_simplify()
+  rmapshaper::ms_simplify(keep = 0.03)
 # Export as shapefile
 sf::st_write(EVG.L2_sim, "EVG.L2_sim.shp")
 

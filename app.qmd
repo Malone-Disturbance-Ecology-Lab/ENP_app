@@ -59,7 +59,7 @@ Malone, S.L., G. McLeod, A. Chen, and M. Tupaj. 2025. Fire in the Everglades, 19
 # Map 
 
 ## {.sidebar}
-Current map coordinates:
+Current map coordinates (map may take a while to load):
 
 ```{r}
 # Show current map coordinates

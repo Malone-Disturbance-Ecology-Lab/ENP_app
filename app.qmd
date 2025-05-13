@@ -33,7 +33,7 @@ time_since <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim
 
 # Read in vegetation shapefile and its simplified version
 veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
-veg <- terra::vect(file.path("data", "EVG.L2_sim.shp"))
+veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>% terra::makeValid()
 
 # Read in summary calculations
 summary_calculations <- read_csv(file.path("data", "summary_calculations.csv"))

@@ -31,8 +31,8 @@ time_since_trim_3857 <- time_since_trimmed %>%
   leaflet::projectRasterForLeaflet(method = "bilinear")
 
 # Create simplified versions of the rasters (due to large size)
-total_fires <- terra::spatSample(total_fires_trim_3857, 2000000, method = "regular", as.raster = TRUE)
-time_since <- terra::spatSample(time_since_trim_3857, 2000000, method = "regular", as.raster = TRUE)
+total_fires <- terra::spatSample(total_fires_trim_3857, 100000, method = "regular", as.raster = TRUE)
+time_since <- terra::spatSample(time_since_trim_3857, 100000, method = "regular", as.raster = TRUE)
 
 # Export
 terra::writeRaster(total_fires, 

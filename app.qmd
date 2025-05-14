@@ -23,17 +23,13 @@ library(zoo)
 library(readr)
 library(plotly)
 
-# Read in reprojected rasters (for later)
-total_fires_trim_4326 <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trim_4326.tif")) 
-time_since_trim_4326 <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim_4326.tif")) 
-
 # Read in simplified versions of the rasters (due to large size)
 total_fires <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trim_simp.tif")) 
 time_since <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim_simp.tif"))
 
-# Read in vegetation shapefile and its simplified version
-veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
-veg <- terra::vect(file.path("data", "EVG.L2_sim.shp")) %>% terra::makeValid()
+# Read in simplified vegetation shapefiles 
+veg_4326 <- terra::vect(file.path("data", "EVG.L2_sim_4326.shp")) 
+veg_3857 <- terra::vect(file.path("data", "EVG.L2_sim_3857.shp")) 
 
 # Read in summary calculations
 summary_calculations <- read_csv(file.path("data", "summary_calculations.csv"))
@@ -100,7 +96,7 @@ pal2 <- leaflet::colorNumeric(
 pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF",
                                 "#FFBE7DFF", "#59A14FFF", "#8CD17DFF",
                                 "#B6992DFF", "#F1CE63FF","#499894FF"),
-                   domain = veg$L2_new)
+                   domain = veg_4326$L2_new)
 
 # Render the foundational Leaflet map
 output$map <- leaflet::renderLeaflet({
@@ -110,20 +106,20 @@ output$map <- leaflet::renderLeaflet({
   # Add Leaflet-provided terrain map
   leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
   # Add vegetation layer
-  leaflet::addPolygons(group = "Ecosystem", data = veg, color = ~pal3(L2_new), weight= 0.2,
+  leaflet::addPolygons(group = "Ecosystem", data = veg_4326, color = ~pal3(L2_new), weight= 0.2,
                 fillColor = ~pal3(L2_new), fillOpacity = .7,
                 label = ~htmlEscape(paste("Ecosystem:", L2_new))) %>%
   # Add legend for vegetation layer
   leaflet::addLegend(
     group = "Ecosystem",
-    data = veg,
+    data = veg_4326,
     pal = pal3,
-    values = veg$L2_new,
+    values = veg_4326$L2_new,
     position = "bottomleft",
     title = "Ecosystem"
   ) %>%
   # Add raster layer plot
-  leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1) %>%
+  leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1, project = F) %>%
   # Add legend for raster layer
   leaflet::addLegend(
     group = "Total Fires",
@@ -134,7 +130,7 @@ output$map <- leaflet::renderLeaflet({
     title = "Total Fires"
   ) %>%
   # Add a second layer
-  leaflet::addRasterImage(group = "Years Since Last Fire", time_since, colors = pal2) %>%
+  leaflet::addRasterImage(group = "Years Since Last Fire", time_since, colors = pal2, project = F) %>%
   # Add another legend for the second layer
   leaflet::addLegend(
     group = "Years Since Last Fire",
@@ -193,13 +189,13 @@ Get summary stats over a spatial area (please be patient):
 
 ```{r}
 # Input: Specify the coordinates for the spatial area you want
-numericInput(inputId = "west_coord", label = "Degrees West", terra::ext(veg_orig)[1])
+numericInput(inputId = "west_coord", label = "Degrees West", terra::ext(veg_4326)[1])
 
-numericInput(inputId = "east_coord", label = "Degrees East", terra::ext(veg_orig)[2])
+numericInput(inputId = "east_coord", label = "Degrees East", terra::ext(veg_4326)[2])
 
-numericInput(inputId = "south_coord", label = "Degrees South", terra::ext(veg_orig)[3])
+numericInput(inputId = "south_coord", label = "Degrees South", terra::ext(veg_4326)[3])
 
-numericInput(inputId = "north_coord", label = "Degrees North", terra::ext(veg_orig)[4])
+numericInput(inputId = "north_coord", label = "Degrees North", terra::ext(veg_4326)[4])
 ```
 
 Download a csv file of the current summary dataframe:
@@ -223,13 +219,14 @@ polygon_shape <- reactive({
                   input$east_coord,
                   input$south_coord,
                   input$north_coord)
-  p <- terra::as.polygons(e, crs = "epsg:4326")
+  p <- terra::as.polygons(e, crs = "epsg:4326") %>%
+    terra::project("epsg:3857")
   return(p)
 })
 
 # Find where the two SpatVectors intersect
 veg_aoi_vector <- reactive({
-  overlap_vector <- terra::intersect(veg_orig, polygon_shape())
+  overlap_vector <- terra::intersect(veg_3857, polygon_shape())
   return(overlap_vector)
   })
 
@@ -241,7 +238,7 @@ veg_aoi_stats <- reactive({
 
 # Calculate the mean number of fires for the specified spatial area
 mean_total_fires <- reactive({
-  mean_values1 <- terra::extract(total_fires_trim_4326,
+  mean_values1 <- terra::extract(total_fires,
                               veg_aoi_vector(),
                               mean,
                               na.rm = TRUE,
@@ -252,7 +249,7 @@ mean_total_fires <- reactive({
 
 # Calculate the mean number of years since the last fire for the specified spatial area
 mean_time_since <- reactive({
-  mean_values2 <- terra::extract(time_since_trim_4326,
+  mean_values2 <- terra::extract(time_since,
                               veg_aoi_vector(),
                               mean,
                               na.rm = TRUE,

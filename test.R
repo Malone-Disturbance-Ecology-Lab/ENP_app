@@ -205,3 +205,100 @@ p.mean_area_over_perim <- ggplot(summary_calculations.ma) +
   ylab('Mean Fire Area/Perimeter') + xlab('')
 
 p.mean_area_over_perim %>% plotly::ggplotly(tooltip = c("x", "text"))
+
+# ----------------
+library(dplyr)
+library(leaflet)
+library(terra)
+library(raster)
+library(leafem)
+library(htmltools)
+library(plotly)
+# Read in simplified versions of the rasters (due to large size)
+total_fires <- terra::rast(file.path("data", "EVER_BICY_1978_2023_total_fires_trim_simp.tif")) 
+time_since <- terra::rast(file.path("data", "EVER_BICY_1978_2023_time_since_trim_simp.tif"))
+
+# Read in vegetation shapefile and its simplified version
+#veg_orig <- terra::vect(file.path("data", "EVG.L2_4326.shp"))
+veg <- terra::vect(file.path("data", "EVG.L2_sim_4326.shp"))
+
+pal1 <- leaflet::colorNumeric(
+  palette = "magma",
+  domain = terra::values(total_fires),
+  na.color = "transparent",
+  reverse = T
+)
+
+pal2 <- leaflet::colorNumeric(
+  palette = "viridis",
+  domain = terra::values(time_since),
+  na.color = "transparent"
+)
+
+pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF",
+                                "#FFBE7DFF", "#59A14FFF", "#8CD17DFF",
+                                "#B6992DFF", "#F1CE63FF","#499894FF"),
+                    domain = veg$L2_new)
+
+# Render the foundational Leaflet map
+leaflet() %>%
+    # Add Leaflet-provided gray background map
+    leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
+    # Add Leaflet-provided terrain map
+    leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
+    # Add vegetation layer
+    leaflet::addPolygons(group = "Ecosystem", data = veg, color = ~pal3(L2_new), weight= 0.2,
+                         fillColor = ~pal3(L2_new), fillOpacity = .7,
+                         label = ~htmlEscape(paste("Ecosystem:", L2_new))) %>%
+    # Add legend for vegetation layer
+    leaflet::addLegend(
+      group = "Ecosystem",
+      data = veg,
+      pal = pal3,
+      values = veg$L2_new,
+      position = "bottomleft",
+      title = "Ecosystem"
+    ) %>%
+    # Add raster layer plot
+    leaflet::addRasterImage(group = "Total Fires", total_fires, colors = pal1, project = F) %>%
+    # Add legend for raster layer
+    leaflet::addLegend(
+      group = "Total Fires",
+      data = total_fires,
+      pal = pal1,
+      values = terra::values(total_fires),
+      position = "bottomleft",
+      title = "Total Fires"
+    ) %>%
+    # Add a second layer
+    leaflet::addRasterImage(group = "Years Since Last Fire", time_since, colors = pal2, project = F) %>%
+    # Add another legend for the second layer
+    leaflet::addLegend(
+      group = "Years Since Last Fire",
+      data = time_since,
+      pal = pal2,
+      values = terra::values(time_since),
+      position = "bottomleft",
+      title = "Years Since Last Fire"
+    ) %>%
+    # Add lat/lon coordinate indicator
+    leafem::addMouseCoordinates() %>%
+    # Add mouseover popup that shows the value of the raster layers
+    leafem::addImageQuery(
+      x = raster::raster(total_fires),
+      group = "Total Fires",
+      position = "bottomright"
+    ) %>%
+    leafem::addImageQuery(
+      x = raster::raster(time_since),
+      group = "Years Since Last Fire",
+      position = "bottomright"
+    ) %>%
+    # Set the layer control
+    leaflet::addLayersControl(
+      baseGroups = c("Gray background", "Imagery"),
+      overlayGroups = c("Total Fires", "Years Since Last Fire", "Ecosystem"),
+      options = layersControlOptions(collapsed = FALSE)
+    ) %>%
+    # Hide these groups by default
+    hideGroup(c("Years Since Last Fire", "Ecosystem"))

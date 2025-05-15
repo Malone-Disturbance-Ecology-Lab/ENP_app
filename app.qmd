@@ -4,6 +4,7 @@ format:
   dashboard:
     theme: 
        - journal
+       - styles.scss
     nav-buttons: [github]
     github: https://github.com/Malone-Disturbance-Ecology-Lab/ENP_app
 server: shiny

@@ -1,0 +1,36 @@
+/*-- scss:defaults --*/
+
+// Colors
+$yale-blue: #00356B;
+$yale-lightblue: #286DC0;
+$yale-gray: #968C84;
+$cream: #F4F3EE;
+$gray: #191919;
+$dark-green: #234022;
+$cool-gray: #fafafa;
+$white: #ffffff;
+$light-orange: #FDF2ED;
+$beige: #D9DFCE;
+$light-green: #BCCCB7;
+
+// Base document colors
+$navbar-bg: $yale-blue; // navbar background color
+$navbar-hl: $white; // navbar link highlight color
+$body-bg: $beige; // page background color
+
+/*-- scss:rules --*/
+.card-body {
+  background-color: $cool-gray;
+}
+
+.btn {
+  background-color: $yale-lightblue;
+}
+
+.quarto-dashboard aside.sidebar {
+  background-color: $cream;
+}
+
+.card-header {
+  background-color: $cream;
+}

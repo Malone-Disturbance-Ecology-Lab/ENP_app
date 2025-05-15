@@ -5,3 +5,5 @@
 *.Rproj
 /test
 .DS_Store
+*.html
+/app_files

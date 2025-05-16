@@ -47,9 +47,14 @@ summary_calculations.ma <- summary_calculations %>%
 # About
 
 ## Row
+
+### Column
+
 In the Florida Everglades, fire is a key driver of ecological dynamics, interacting with hydrology and vegetation structure. Fires have been recorded by Everglades National Park and Big Cypress National Preserve (1978-2023) by mapping the outer boundary of fires. Annual fire perimeter data for the two regions were combined to generate a fire history database for the subtropical landscape. This dataset includes fire perimeters, binary burned layers, and years of fire layers that can be used to quantify fire dynamics across subtropical ecosystems.
 
 Malone, S.L., G. McLeod, A. Chen, and M. Tupaj. 2025. Fire in the Everglades, 1978-2023 ver 1. Environmental Data Initiative. <https://doi.org/10.6073/pasta/72db80a33574c8ad936673d720c9360f>.
+
+### Column
 
 <p align="center">
 <img src="images/fire.jpg" align="center" width="70%"/>

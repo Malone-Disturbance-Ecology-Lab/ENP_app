@@ -11,12 +11,15 @@ $cool-gray: #fafafa;
 $white: #ffffff;
 $light-orange: #FDF2ED;
 $beige: #D9DFCE;
-$light-green: #BCCCB7;
+$light-green: #B6E2B6;
+$pistachio: #88D18A;
+$tea-green: #CCDDB7;
+$melon: #F0B7B3;
 
 // Base document colors
 $navbar-bg: $yale-blue; // navbar background color
 $navbar-hl: $white; // navbar link highlight color
-$body-bg: $beige; // page background color
+$body-bg: $light-green; // page background color
 
 /*-- scss:rules --*/
 .card-body {
@@ -25,6 +28,10 @@ $body-bg: $beige; // page background color
 
 .btn {
   background-color: $yale-lightblue;
+}
+
+.btn:hover {
+  background-color: $melon;
 }
 
 .quarto-dashboard aside.sidebar {
@@ -36,5 +43,9 @@ $body-bg: $beige; // page background color
 }
 
 .form-control {
+  background-color: $cool-gray;
+}
+
+.form-control:focus {
   background-color: $cool-gray;
 }

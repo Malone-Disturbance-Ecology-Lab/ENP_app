@@ -50,14 +50,18 @@ summary_calculations.ma <- summary_calculations %>%
 
 ### Column
 
-In the Florida Everglades, fire is a key driver of ecological dynamics, interacting with hydrology and vegetation structure. Fires have been recorded by Everglades National Park and Big Cypress National Preserve (1978-2023) by mapping the outer boundary of fires. Annual fire perimeter data for the two regions were combined to generate a fire history database for the subtropical landscape. This dataset includes fire perimeters, binary burned layers, and years of fire layers that can be used to quantify fire dynamics across subtropical ecosystems.
+In the Florida Everglades, fire is a key driver of ecological dynamics, interacting with hydrology and vegetation structure. Fires have been recorded by Everglades National Park and Big Cypress National Preserve (1978-2023) by mapping the outer boundary of fires. Annual fire perimeter data for the two regions were combined to generate a fire history database for the subtropical landscape. This dataset includes fire perimeters, binary burned layers, and years of fire layers that can be used to quantify fire dynamics across subtropical ecosystems. 
+
+The dataset can be accessed here:
 
 Malone, S.L., G. McLeod, A. Chen, and M. Tupaj. 2025. Fire in the Everglades, 1978-2023 ver 1. Environmental Data Initiative. <https://doi.org/10.6073/pasta/72db80a33574c8ad936673d720c9360f>.
+
+Data layers containing the total number of fires and years since the last fire have been derived from the aforementioned dataset and visualized in the Map tab.
 
 ### Column
 
 <p align="center">
-<img src="images/fire.jpg" align="center" width="70%"/>
+<img src="images/fire.jpg" align="center" width="100%"/>
 </p>
 
 <center>*Fire in Everglades National Park.*</center>
@@ -67,7 +71,12 @@ Malone, S.L., G. McLeod, A. Chen, and M. Tupaj. 2025. Fire in the Everglades, 19
 # Map 
 
 ## {.sidebar}
-Current map coordinates (map may take a while to load):
+
+This map contains the total number of fires and years since the last fire across different ecosystems in the Florida Everglades. These data layers were created from [Fire in the Everglades, 1978-2023](https://doi.org/10.6073/pasta/72db80a33574c8ad936673d720c9360f). 
+
+The layers were simplified due to their large size. Please note that the map can take up to a minute to load.
+
+Current map coordinates:
 
 ```{r}
 # Show current map coordinates

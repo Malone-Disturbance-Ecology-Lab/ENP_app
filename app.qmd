@@ -119,7 +119,7 @@ output$map <- leaflet::renderLeaflet({
   # Add Leaflet-provided gray background map
   leaflet::addProviderTiles(providers$Stadia.AlidadeSmooth, group = "Gray background") %>%
   # Add Leaflet-provided terrain map
-  leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
+  leaflet::addProviderTiles("Esri.WorldImagery", group = "Terrain") %>%
   # Add vegetation layer
   leaflet::addPolygons(group = "Ecosystem", data = veg_4326, color = ~pal3(L2_new), weight= 0.2,
                 fillColor = ~pal3(L2_new), fillOpacity = .7,
@@ -170,7 +170,7 @@ output$map <- leaflet::renderLeaflet({
   ) %>%
   # Set the layer control
   leaflet::addLayersControl(
-    baseGroups = c("Gray background", "Imagery"),
+    baseGroups = c("Gray background", "Terrain"),
     overlayGroups = c("Total Fires", "Years Since Last Fire", "Ecosystem"),
     options = layersControlOptions(collapsed = FALSE)
   ) %>%

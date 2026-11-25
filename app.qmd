@@ -180,19 +180,19 @@ output$map <- leaflet::renderLeaflet({
  
 # Output the current coordinates on the map
 output$current_coords_w <- renderText({
-  paste0(input$map_bounds$west, "° W")
+  paste0(round(input$map_bounds$west, 4), "° W")
 })
 
 output$current_coords_e <- renderText({
-  paste0(input$map_bounds$east, "° E")
+  paste0(round(input$map_bounds$east, 4), "° E")
 })
 
 output$current_coords_s <- renderText({
-  paste0(input$map_bounds$south, "° S")
+  paste0(round(input$map_bounds$south, 4), "° S")
 })
 
 output$current_coords_n <- renderText({
-  paste0(input$map_bounds$north, "° N")
+  paste0(round(input$map_bounds$north, 4), "° N")
 })
 ```
 
@@ -204,13 +204,13 @@ Get summary stats over a spatial area (please be patient):
 
 ```{r}
 # Input: Specify the coordinates for the spatial area you want
-numericInput(inputId = "west_coord", label = "Degrees West", terra::ext(veg_4326)[1])
+numericInput(inputId = "west_coord", label = "Degrees West", round(terra::ext(veg_4326)[1], 4))
 
-numericInput(inputId = "east_coord", label = "Degrees East", terra::ext(veg_4326)[2])
+numericInput(inputId = "east_coord", label = "Degrees East", round(terra::ext(veg_4326)[2], 4))
 
-numericInput(inputId = "south_coord", label = "Degrees South", terra::ext(veg_4326)[3])
+numericInput(inputId = "south_coord", label = "Degrees South", round(terra::ext(veg_4326)[3], 4))
 
-numericInput(inputId = "north_coord", label = "Degrees North", terra::ext(veg_4326)[4])
+numericInput(inputId = "north_coord", label = "Degrees North", round(terra::ext(veg_4326)[4], 4))
 ```
 
 Download a csv file of the current summary dataframe:
@@ -290,7 +290,7 @@ table_summary <- reactive({
 # Show the values in an HTML table
 output$values <- renderTable({
   table_summary()
-})
+}, digits = 4)
 
 output$dl <- downloadHandler(
   # Create the output file name

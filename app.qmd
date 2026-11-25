@@ -117,7 +117,7 @@ pal3 <- colorFactor(palette = c("#4E79A7FF", "#A0CBE8FF", "#F28E2BFF",
 output$map <- leaflet::renderLeaflet({
   leaflet() %>%
   # Add Leaflet-provided gray background map
-  leaflet::addProviderTiles(providers$CartoDB.Positron, group = "Gray background") %>%
+  leaflet::addProviderTiles(providers$Stadia.AlidadeSmooth, group = "Gray background") %>%
   # Add Leaflet-provided terrain map
   leaflet::addProviderTiles("Esri.WorldImagery", group = "Imagery") %>%
   # Add vegetation layer

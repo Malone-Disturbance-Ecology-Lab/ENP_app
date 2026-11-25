@@ -76,7 +76,7 @@ This map contains the total number of fires and years since the last fire across
 
 The layers were simplified due to their large size. Please note that the map can take up to a minute to load.
 
-Current map coordinates:
+**Current map coordinates:**
 
 ```{r}
 # Show current map coordinates
@@ -200,7 +200,7 @@ output$current_coords_n <- renderText({
 
 ## {.sidebar}
 
-Get summary stats over a spatial area (please be patient): 
+**Get summary stats over a spatial area:** 
 
 ```{r}
 # Input: Specify the coordinates for the spatial area you want
@@ -213,7 +213,7 @@ numericInput(inputId = "south_coord", label = "Degrees South", round(terra::ext(
 numericInput(inputId = "north_coord", label = "Degrees North", round(terra::ext(veg_4326)[4], 4))
 ```
 
-Download a csv file of the current summary dataframe:
+**Download a csv file of the current summary dataframe:**
 
 ```{r}
 # Download button to download a csv of the summary dataframe

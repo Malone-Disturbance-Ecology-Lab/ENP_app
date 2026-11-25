@@ -54,9 +54,16 @@ In the Florida Everglades, fire is a key driver of ecological dynamics, interact
 
 The dataset can be accessed here:
 
-Malone, S.L., G. McLeod, A. Chen, and M. Tupaj. 2025. Fire in the Everglades, 1978-2023 ver 1. Environmental Data Initiative. <https://doi.org/10.6073/pasta/72db80a33574c8ad936673d720c9360f>.
+Malone, S. L., McLeod, G., Chen, A., & Tupaj, M. (2025). Fire in the Everglades, 1978-2023 ver 1. Environmental Data Initiative. <https://doi.org/10.6073/pasta/72db80a33574c8ad936673d720c9360f>.
 
 Data layers containing the total number of fires and years since the last fire have been derived from the aforementioned dataset and visualized in the Map tab.
+
+For more information on this project, please read:
+
+Malone, S. L., McLeod, G., Chen, A., & Tupaj, M. (2025). Contemporary Fire Regimes of the Subtropical Everglades. <i>Scientific Data, 12</i>(1), 1622. <https://doi.org/10.1038/s41597-025-05917-6>.
+
+McLeod, G., Tupaj, M., Gann, D., Ross, M., & Malone, S. L. (2025). Fires enhanced productivity in fire-adapted subtropical pinelands of the Florida Everglades. <i>Science of The Total Environment, 1003</i>, 180602. <https://doi.org/10.1016/j.scitotenv.2025.180602>.
+
 
 ### Column
 
